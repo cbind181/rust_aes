@@ -30,21 +30,30 @@ SOFTWARE.*/
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use hex_literal::hex;
+
+const key:  [i32; 16] = [0x42; 16];
+const iv:   [i32; 16] = [0x24; 16];
 
 fn main() {
+    
+    type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
+    type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
+
     // File hosts must exist in current path before this produces output
     if let Ok(lines) = read_lines("../../../python_aes/msg.txt") {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(ip) = line {
-                println!("{}", ip);
+                //code logic
+                println!("CRINGE:{}", ip);
             }
         }
     }
 }
 
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>> where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
