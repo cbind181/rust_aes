@@ -27,14 +27,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
+//import STD libraries
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+
+//import cryptographic libraries
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use hex_literal::hex;
 
-const key:  [i32; 16] = [0x42; 16];
-const iv:   [i32; 16] = [0x24; 16];
+//import random libraries
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
+
+//assign randomized key
+
+const KEY:  &str = "EX[\xc8\xd5\xbfI{\xa2$\x05(\xd5\x18\xbf\xc0\x85)\x10nc\x94\x02)j\xdf\xcb\xc4\x94\x9d(\x9e";
+const IV:   [i32; 16] = [0x24; 16];
 
 fn main() {
     
@@ -42,7 +51,7 @@ fn main() {
     type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("../../../python_aes/msg.txt") {
+    if let Ok(lines) = read_lines("../../../python_aes/msg.txt") { //change to necessary file
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(ip) = line {
