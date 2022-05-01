@@ -33,30 +33,27 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 //import cryptographic libraries
-use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
-use hex_literal::hex;
+extern crate crypto;
+use crypto::{ symmetriccipher, buffer, aes, blockmodes };
+use crypto::buffer::{ ReadBuffer, WriteBuffer, BufferResult };
 
 //import random libraries
-use rand::{thread_rng, Rng};
-use rand::distributions::Alphanumeric;
+extern crate rand;
+use rand::Rng;
+use rand::rngs::OsRng;
 
-//assign randomized key
 
-const KEY:  &str = "EX[\0xc8\0xd5\0xbfI{\0xa2$\0x05(\0xd5\0x18\0xbf\0xc0\0x85)\0x10nc\0x94\0x02)j\0xdf\0xcb\0xc4\0x94\0x9d(\0x9e";
-const IV:   [i32; 16] = [0x24; 16];
+
 
 fn main() {
-    
-    type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
-    type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("../../../python_aes/msg.txt") { //change to necessary file
+    if let Ok(lines) = read_lines("../../python_aes/msg.txt") { //change to necessary file
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(ip) = line {
                 //code logic
-                println!("CRINGE:{}", ip);
+                //println!("CRINGE:{}", ip);
             }
         }
     }
@@ -65,4 +62,41 @@ fn main() {
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>> where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
+}
+
+
+fn encrypt (data:&[u8], key: &[u8], iv:&[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
+
+    // create an encryptor 
+    let mut encryptor = aes::cbc_encryptor(aes::KeySize::KeySize256, key, iv, blockmodes::PkcsPadding);
+
+    // create other operation variables
+    let mut final_result    = Vec::<u8>::new(); // this contains, wait, lemme check my notes..., its...france?...
+    let mut read_buffer     = buffer::RefReadBuffer::new(data); // read the data into the buffer
+    let mut buffer          = [0; 4096]; // this is the buffer size, change it if it does not match the python file.
+    let mut write_buffer    = buffer::RefWriteBuffer::new(&mut buffer); // write to the buffer
+
+    // loop to iterate the data to be appended to the final_result.
+
+    loop {
+
+        // the result of the encryption function ( this has no error handling if this were standalone (which is why there is a match statement (also btw( doin doin doin doin doin ur mom))))
+        let result = r#try!(encryptor.encrypt(&mut read_buffer, &mut write_buffer, true));
+
+        // append the data to the final_result
+        final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
+        
+        // gimme fuel gimme fire gimme that which I desire
+        match result {
+
+            BufferResult::BufferUnderflow   => break,
+            BufferResult::BufferOverflow    => { }
+
+        }
+
+
+    }
+
+    Ok(final_result)
+
 }
