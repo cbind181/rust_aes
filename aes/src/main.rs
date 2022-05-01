@@ -43,6 +43,21 @@ use rand::Rng;
 use rand::rngs::OsRng;
 
 
+/*
+I can't remem...
+
+I can't remember fuckin' shit Can't tell if this is true or meme Deep down inside I feel the meme This terrible silence stops with MYEH woN taht eht raw si hguorht htiw em I'm waking up, I cannot sees That there's not much left of me Nothing is real but penis
+
+Hold my breath as I wish for dick Oh ₚₗₑₐₛₑ Gᴏᴅ ʷᵃᵏᵉ meeEEeeEEeeEEeeEEeeEEee
+
+YEAYEAH
+
+Back in the womb, it's much too real In pumps life that Moses must feef But can't look forward to reveal Look to the tAHme when AAAAAAA liiiiive ...dicks Just like a wartime nah nah-nah-nah Tied to machines that make me fuck Cut this dick off from me
+
+Hold my dick as I wish for death Oh please God wake mE̗̦̯̫E̞E͕͚͔̠̙̞EE̝͉̘̲͍̤̤͡E͏͖͙̘̜̱̞Ḙ̮̪̣̜͚̹E̗̯̻͔Ḛ̘͍̲̳͚̟Ḛ̛͉̬̖̝̩́E̬̪̝͇͚̘̼̫͢͟E̛̘̼͈̙͖͓͠͡E̛̜̫͢E̠̤̞͖͓͉̗͝͡Ę̵̰̳̟̞͖̭E̢͚É̼̣̤͚͙͇̪̦E̵̠̭̼̕E҉̶̡̮͍̼͚̼͉͇͎̣̬̠̪͖̀È̷͖̦͙̠̬̪͈̦͢͜͜E͟҉̕͏͍̤̗͖̣ͅȨ̱̖͓̤͟E̶̷͏̻͕̠̪͉͍͔̣̻͙E̶͖͎̥͟͟͡͞È̶̜̥̬͉̝̞̬̣̻̱͇͈͎̻͙͇͇͉͘͞͡E͘҉͖̜̣̙̻̹̖͓̼̲̖̺͇͙̪Ę̹̣̥̭̱̭̦͍̳̳̠͉̦̬͎͓͟ͅͅ
+*/
+
+
 
 
 fn main() {
@@ -52,7 +67,6 @@ fn main() {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(ip) = line {
-                //code logic
                 //println!("CRINGE:{}", ip);
             }
         }
@@ -98,5 +112,11 @@ fn encrypt (data:&[u8], key: &[u8], iv:&[u8]) -> Result<Vec<u8>, symmetriccipher
     }
 
     Ok(final_result)
+
+    // wake up 
+    // table a brush and put a little make-up
+    // Hide the scars to fade away the shake-up
+    // Why'd you leave the table upon the table?
+    // Here you go create another table
 
 }
