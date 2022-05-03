@@ -99,7 +99,7 @@ fn convert(x: usize) -> Result<f64, &'static str> {
 }
 
 fn main() {
-    let message = fs::read_to_string("/mnt/c/Users/ctbin/Desktop/test code bs/rust/aes2/src/msg.txt").expect("something went wrong");
+    let message = fs::read_to_string("msg.txt").expect("something went wrong");
 
     let mut key: [u8; 32] = [0; 32];
     let mut iv: [u8; 16] = [0; 16];
