@@ -1,7 +1,6 @@
-/* This is a simple program to utilize AES CBC in Python 3
-must run `pip install pycrypto` before running
+/* This is a simple program to utilize AES CBC in Rust
 
-credit to https://asecuritysite.com/symmetric/rust_aes?m=abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq
+credit to https://github.com/DaGenix/rust-crypto/blob/master/examples/symmetriccipher.rs
 
 Authors: Cody Binder & Calen Olsen
 Date: 2022-04-25
@@ -27,96 +26,117 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-//import STD libraries
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
-
-//import cryptographic libraries
 extern crate crypto;
+extern crate rand;
+extern crate floating_duration;
+
+use std::fs;
+use std::time::Instant;
+use floating_duration::TimeAsFloat;
+
 use crypto::{ symmetriccipher, buffer, aes, blockmodes };
 use crypto::buffer::{ ReadBuffer, WriteBuffer, BufferResult };
 
-//import random libraries
-extern crate rand;
-use rand::Rng;
-use rand::rngs::OsRng;
+use rand::{ rngs::OsRng, RngCore };
 
+fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
 
-/*
-I can't remem...
+    let mut encryptor = aes::cbc_encryptor(
+            aes::KeySize::KeySize256,
+            key,
+            iv,
+            blockmodes::PkcsPadding);
 
-I can't remember fuckin' shit Can't tell if this is true or meme Deep down inside I feel the meme This terrible silence stops with MYEH woN taht eht raw si hguorht htiw em I'm waking up, I cannot sees That there's not much left of me Nothing is real but penis
-
-Hold my breath as I wish for dick Oh ₚₗₑₐₛₑ Gᴏᴅ ʷᵃᵏᵉ meeEEeeEEeeEEeeEEeeEEee
-
-YEAYEAH
-
-Back in the womb, it's much too real In pumps life that Moses must feef But can't look forward to reveal Look to the tAHme when AAAAAAA liiiiive ...dicks Just like a wartime nah nah-nah-nah Tied to machines that make me fuck Cut this dick off from me
-
-Hold my dick as I wish for death Oh please God wake mE̗̦̯̫E̞E͕͚͔̠̙̞EE̝͉̘̲͍̤̤͡E͏͖͙̘̜̱̞Ḙ̮̪̣̜͚̹E̗̯̻͔Ḛ̘͍̲̳͚̟Ḛ̛͉̬̖̝̩́E̬̪̝͇͚̘̼̫͢͟E̛̘̼͈̙͖͓͠͡E̛̜̫͢E̠̤̞͖͓͉̗͝͡Ę̵̰̳̟̞͖̭E̢͚É̼̣̤͚͙͇̪̦E̵̠̭̼̕E҉̶̡̮͍̼͚̼͉͇͎̣̬̠̪͖̀È̷͖̦͙̠̬̪͈̦͢͜͜E͟҉̕͏͍̤̗͖̣ͅȨ̱̖͓̤͟E̶̷͏̻͕̠̪͉͍͔̣̻͙E̶͖͎̥͟͟͡͞È̶̜̥̬͉̝̞̬̣̻̱͇͈͎̻͙͇͇͉͘͞͡E͘҉͖̜̣̙̻̹̖͓̼̲̖̺͇͙̪Ę̹̣̥̭̱̭̦͍̳̳̠͉̦̬͎͓͟ͅͅ
-*/
-
-
-
-
-fn main() {
-
-    // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("../../python_aes/msg.txt") { //change to necessary file
-        // Consumes the iterator, returns an (Optional) String
-        for line in lines {
-            if let Ok(ip) = line {
-                //println!("CRINGE:{}", ip);
-            }
-        }
-    }
-}
-
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>> where P: AsRef<Path>, {
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
-}
-
-
-fn encrypt (data:&[u8], key: &[u8], iv:&[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
-
-    // create an encryptor 
-    let mut encryptor = aes::cbc_encryptor(aes::KeySize::KeySize256, key, iv, blockmodes::PkcsPadding);
-
-    // create other operation variables
-    let mut final_result    = Vec::<u8>::new(); // this contains, wait, lemme check my notes..., its...france?...
-    let mut read_buffer     = buffer::RefReadBuffer::new(data); // read the data into the buffer
-    let mut buffer          = [0; 4096]; // this is the buffer size, change it if it does not match the python file.
-    let mut write_buffer    = buffer::RefWriteBuffer::new(&mut buffer); // write to the buffer
-
-    // loop to iterate the data to be appended to the final_result.
+    let mut final_result = Vec::<u8>::new();
+    let mut read_buffer = buffer::RefReadBuffer::new(data);
+    let mut buffer = [0; 4096];
+    let mut write_buffer = buffer::RefWriteBuffer::new(&mut buffer);
 
     loop {
-
-        // the result of the encryption function ( this has no error handling if this were standalone (which is why there is a match statement (also btw( doin doin doin doin doin ur mom))))
         let result = r#try!(encryptor.encrypt(&mut read_buffer, &mut write_buffer, true));
 
-        // append the data to the final_result
         final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
-        
-        // gimme fuel gimme fire gimme that which I desire
+
         match result {
-
-            BufferResult::BufferUnderflow   => break,
-            BufferResult::BufferOverflow    => { }
-
+            BufferResult::BufferUnderflow => break,
+            BufferResult::BufferOverflow => { }
         }
-
-
     }
 
     Ok(final_result)
+}
 
-    // wake up 
-    // table a brush and put a little make-up
-    // Hide the scars to fade away the shake-up
-    // Why'd you leave the table upon the table?
-    // Here you go create another table
+fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
+    let mut decryptor = aes::cbc_decryptor(
+            aes::KeySize::KeySize256,
+            key,
+            iv,
+            blockmodes::PkcsPadding);
 
+    let mut final_result = Vec::<u8>::new();
+    let mut read_buffer = buffer::RefReadBuffer::new(encrypted_data);
+    let mut buffer = [0; 4096];
+    let mut write_buffer = buffer::RefWriteBuffer::new(&mut buffer);
+
+    loop {
+        let result = r#try!(decryptor.decrypt(&mut read_buffer, &mut write_buffer, true));
+        final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
+        match result {
+            BufferResult::BufferUnderflow => break,
+            BufferResult::BufferOverflow => { }
+        }
+    }
+
+    Ok(final_result)
+}
+
+fn convert(x: usize) -> Result<f64, &'static str> {
+    let result = x as f64;
+    if result as usize != x {
+        return Err("cannot convert")
+    }
+    Ok(result)
+}
+
+fn main() {
+    let message = fs::read_to_string("/mnt/c/Users/ctbin/Desktop/test code bs/rust/aes2/src/msg.txt").expect("something went wrong");
+
+    let mut key: [u8; 32] = [0; 32];
+    let mut iv: [u8; 16] = [0; 16];
+
+    let mut rng = OsRng::new().ok().unwrap();
+    rng.fill_bytes(&mut key);
+    rng.fill_bytes(&mut iv);
+
+    let mut encrypt_times = Vec::new();
+    let mut decrypt_times = Vec::new();
+
+    // runs test 20 times and averages times, then prints best time
+    for _i in 0..20 {
+        let start = Instant::now();
+        let encrypted_data = encrypt(message.as_bytes(), &key, &iv).ok().unwrap();
+        let elapsed = start.elapsed();
+        encrypt_times.push(elapsed.as_fractional_secs());
+        println!("encrypt time: {:?}", elapsed);
+        
+        let start = Instant::now();
+        let decrypted_data = decrypt(&encrypted_data[..], &key, &iv).ok().unwrap();
+        let elapsed = start.elapsed();
+        decrypt_times.push(elapsed.as_fractional_secs());
+        println!("decrypt time: {:?}", elapsed);
+
+        assert!(message.as_bytes() == &decrypted_data[..]);
+    }
+
+    let encrypt_sum: f64 = encrypt_times.iter().sum();
+    let decrypt_sum: f64 = decrypt_times.iter().sum();
+
+    let avg_encrypt: f64 = encrypt_sum / convert(encrypt_times.len()).expect("cannot convert");
+    let avg_decrypt: f64 = decrypt_sum / convert(decrypt_times.len()).expect("cannot convert");
+
+    println!("average encrypt time: {:?}s", avg_encrypt);
+    println!("average decrypt time: {:?}s", avg_decrypt);
+
+    println!("best encrypt time: {:?}s", encrypt_times.iter().fold(f64::INFINITY, |a, &b| a.min(b)));
+    println!("best decrypt time: {:?}s", decrypt_times.iter().fold(f64::INFINITY, |a, &b| a.min(b)));
 }
