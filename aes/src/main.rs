@@ -39,19 +39,22 @@ use crypto::buffer::{ ReadBuffer, WriteBuffer, BufferResult };
 
 use rand::{ rngs::OsRng, RngCore };
 
+// encrypts a message
 fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
-
+    // declares variable to encrypt with
     let mut encryptor = aes::cbc_encryptor(
             aes::KeySize::KeySize256,
             key,
             iv,
             blockmodes::PkcsPadding);
-
+    
+    // keeps track of how much data has been written or read
     let mut final_result = Vec::<u8>::new();
     let mut read_buffer = buffer::RefReadBuffer::new(data);
     let mut buffer = [0; 4096];
     let mut write_buffer = buffer::RefWriteBuffer::new(&mut buffer);
 
+    // loops through and slices the data, allowing it to continue to make encryption passes
     loop {
         let result = r#try!(encryptor.encrypt(&mut read_buffer, &mut write_buffer, true));
 
@@ -66,6 +69,7 @@ fn encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetricciphe
     Ok(final_result)
 }
 
+// decrypts a message
 fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symmetriccipher::SymmetricCipherError> {
     let mut decryptor = aes::cbc_decryptor(
             aes::KeySize::KeySize256,
@@ -73,11 +77,13 @@ fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symm
             iv,
             blockmodes::PkcsPadding);
 
+    // keeps track of how much data has been written or read
     let mut final_result = Vec::<u8>::new();
     let mut read_buffer = buffer::RefReadBuffer::new(encrypted_data);
     let mut buffer = [0; 4096];
     let mut write_buffer = buffer::RefWriteBuffer::new(&mut buffer);
 
+    // loops through and slices the data, allowing it to continue to make decryption passes
     loop {
         let result = r#try!(decryptor.decrypt(&mut read_buffer, &mut write_buffer, true));
         final_result.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
@@ -90,6 +96,7 @@ fn decrypt(encrypted_data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, symm
     Ok(final_result)
 }
 
+// converts the usize data type from a vector length to a float data type so I can do math
 fn convert(x: usize) -> Result<f64, &'static str> {
     let result = x as f64;
     if result as usize != x {
@@ -98,9 +105,12 @@ fn convert(x: usize) -> Result<f64, &'static str> {
     Ok(result)
 }
 
+// main method for execution
 fn main() {
+    // file path to message to encrypt/decrypt
     let message = fs::read_to_string("msg.txt").expect("something went wrong");
 
+    // generate key and iv
     let mut key: [u8; 32] = [0; 32];
     let mut iv: [u8; 16] = [0; 16];
 
@@ -108,10 +118,11 @@ fn main() {
     rng.fill_bytes(&mut key);
     rng.fill_bytes(&mut iv);
 
+    // vectors to store runtimes
     let mut encrypt_times = Vec::new();
     let mut decrypt_times = Vec::new();
 
-    // runs test 20 times and averages times, then prints best time
+    // runs test 20 times and prints the times
     for _i in 0..20 {
         let start = Instant::now();
         let encrypted_data = encrypt(message.as_bytes(), &key, &iv).ok().unwrap();
@@ -128,12 +139,14 @@ fn main() {
         assert!(message.as_bytes() == &decrypted_data[..]);
     }
 
+    // calculates average and best runtimes
     let encrypt_sum: f64 = encrypt_times.iter().sum();
     let decrypt_sum: f64 = decrypt_times.iter().sum();
 
     let avg_encrypt: f64 = encrypt_sum / convert(encrypt_times.len()).expect("cannot convert");
     let avg_decrypt: f64 = decrypt_sum / convert(decrypt_times.len()).expect("cannot convert");
 
+    // prints averages runtimes, then prints best time
     println!("average encrypt time: {:?}s", avg_encrypt);
     println!("average decrypt time: {:?}s", avg_decrypt);
 
